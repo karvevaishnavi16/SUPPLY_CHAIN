@@ -68,10 +68,24 @@ function Dashboard() {
   const [trends, setTrends] = useState([]);            // Monthly return trends
   const [issueDistribution, setIssueDistribution] = useState([]); // Issue breakdown
   const [categoryIssues, setCategoryIssues] = useState([]); // Category breakdown
+  const [actionSummary, setActionSummary] = useState({ priorities: [] });
+  const [alerts, setAlerts] = useState({ alerts: [] });
   const [loading, setLoading] = useState(true);        // Loading flag
   const [error, setError] = useState(null);            // Error message
 
   const navigate = useNavigate();  // For navigating to product detail
+
+  function openCategoryProducts(category, issue) {
+    const params = new URLSearchParams({
+      category,
+      sortBy: 'return_rate',
+      sortOrder: 'desc',
+    });
+    if (issue) {
+      params.set('issue', issue);
+    }
+    navigate(`/products?${params.toString()}`);
+  }
 
   // ---- FETCH DATA ON MOUNT ----
   // useEffect with [] runs ONCE when the component first appears on screen
@@ -85,12 +99,14 @@ function Dashboard() {
 
       // Fetch ALL dashboard data in parallel using Promise.all
       // This is faster than fetching sequentially (one after another)
-      const [statsRes, topRes, trendsRes, issuesRes, catRes] = await Promise.all([
+      const [statsRes, topRes, trendsRes, issuesRes, catRes, actionRes, alertsRes] = await Promise.all([
         axios.get('/api/dashboard/stats'),
         axios.get('/api/dashboard/top-returned'),
         axios.get('/api/dashboard/trends'),
         axios.get('/api/dashboard/issue-distribution'),
         axios.get('/api/dashboard/category-issues'),
+        axios.get('/api/dashboard/action-summary'),
+        axios.get('/api/dashboard/alerts'),
       ]);
 
       setStats(statsRes.data);
@@ -98,6 +114,8 @@ function Dashboard() {
       setTrends(trendsRes.data);
       setIssueDistribution(issuesRes.data);
       setCategoryIssues(catRes.data);
+      setActionSummary(actionRes.data);
+      setAlerts(alertsRes.data);
     } catch (err) {
       console.error('Failed to load dashboard:', err);
       setError('Failed to load dashboard data. Make sure the backend is running on port 5000.');
@@ -186,6 +204,41 @@ function Dashboard() {
         <h1>Returns Intelligence Dashboard</h1>
         <p>AI-powered insights across {stats?.totalProducts || 0} products • Real-time analysis</p>
       </div>
+
+      {alerts?.alerts?.length > 0 && (
+        <div className="dashboard-alerts-panel">
+          <div className="dashboard-alerts-header">
+            <h3>
+              <AlertTriangle size={18} style={{ color: '#f59e0b' }} />
+              Active Alerts
+            </h3>
+            <p>{alerts.summary}</p>
+          </div>
+
+          <div className="dashboard-alerts-list">
+            {alerts.alerts.map((alert) => (
+              <button
+                key={alert.id}
+                type="button"
+                className={`dashboard-alert-card ${alert.severity}`}
+                onClick={() => openCategoryProducts(alert.category, alert.issue)}
+              >
+                <div className="dashboard-alert-top">
+                  <span className={`action-priority ${alert.priority}`}>{alert.priority}</span>
+                  <span className={`dashboard-alert-severity ${alert.severity}`}>{alert.severity}</span>
+                </div>
+                <div className="dashboard-alert-title">{alert.category} • {alert.issue}</div>
+                <div className="dashboard-alert-message">{alert.message}</div>
+                <div className="dashboard-alert-meta">
+                  <span>{alert.returnCount} returns</span>
+                  <span>₹{formatNumber(alert.refundTotal)} refunds</span>
+                  <span>Owner: {alert.owner}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ===== SECTION 1: KPI STAT CARDS ===== */}
       <div className="stats-grid">
@@ -334,6 +387,68 @@ function Dashboard() {
             />
           </BarChart>
         </ResponsiveContainer>
+      </div>
+
+      <div className="chart-card" style={{ marginBottom: '32px' }}>
+        <h3>
+          <ShieldAlert size={18} style={{ color: '#f59e0b' }} />
+          Business Action Priorities
+        </h3>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', marginBottom: '18px' }}>
+          {actionSummary?.summary || 'Category-level action priorities will appear here once enough return data is available.'}
+        </p>
+
+        {actionSummary?.priorities?.length > 0 ? (
+          <div className="dashboard-priority-list">
+            {actionSummary.priorities.map((item) => (
+              <div
+                key={item.category}
+                className="dashboard-priority-card"
+                onClick={() => openCategoryProducts(item.category, item.topIssue)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openCategoryProducts(item.category, item.topIssue);
+                  }
+                }}
+              >
+                <div className="dashboard-priority-header">
+                  <div>
+                    <h4>{item.category}</h4>
+                    <p>{item.returnCount} returns tracked • {item.issueShare}% linked to {item.topIssue}</p>
+                  </div>
+                  <div className="seller-action-badges">
+                    <span className={`action-priority ${item.priority}`}>{item.priority}</span>
+                    <span className="action-impact">{item.impact}</span>
+                  </div>
+                </div>
+
+                <div className="seller-action-meta">
+                  <span>Owner: {item.owner}</span>
+                  <span>Main issue: {item.topIssue}</span>
+                </div>
+
+                <div className="seller-action-list">
+                  {item.actions.map((action) => (
+                    <div key={`${item.category}-${action}`} className="seller-action-item">
+                      {action}
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ marginTop: '14px', fontSize: '0.78rem', color: 'var(--accent-primary)', fontWeight: '600' }}>
+                  Open products in this category <ArrowRight size={13} style={{ display: 'inline' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state" style={{ minHeight: 'unset', padding: '24px 0 8px' }}>
+            <p>No category priorities are available yet.</p>
+          </div>
+        )}
       </div>
 
       {/* ===== SECTION 3: TOP RETURNED PRODUCTS TABLE ===== */}
