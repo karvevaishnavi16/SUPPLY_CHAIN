@@ -170,6 +170,141 @@ a:hover {
   background-clip: text;
 }
 
+.dashboard-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.hero-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 420px;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  margin-bottom: 18px;
+}
+
+.hero-card h2 {
+  font-size: 2.05rem;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 18px;
+  color: var(--text-heading);
+}
+
+.hero-card p {
+  max-width: 640px;
+  color: var(--text-secondary);
+  font-size: 0.96rem;
+  line-height: 1.8;
+}
+
+.hero-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.hero-metric {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 18px 20px;
+}
+
+.metric-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.metric-value {
+  display: block;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin-bottom: 8px;
+}
+
+.metric-value.trend-positive {
+  color: var(--color-success);
+}
+
+.metric-value.trend-neutral {
+  color: var(--text-heading);
+}
+
+.metric-caption {
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+  line-height: 1.6;
+}
+
+.dashboard-side-cards {
+  display: grid;
+  gap: 20px;
+}
+
+.analysis-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 210px;
+}
+
+.analysis-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--accent-secondary);
+  margin-bottom: 18px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.analysis-card-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin-bottom: 10px;
+}
+
+.analysis-card p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.75;
+}
+
+@media (max-width: 960px) {
+  .dashboard-hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .page-header p {
   color: var(--text-secondary);
   font-size: 0.95rem;
